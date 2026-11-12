@@ -68,7 +68,21 @@ function cardFor(vault, pid) {
 }
 
 // Is the access code valid? Checks with ravotters.nl. The 72 hours start at first use.
-async function checkAccess(raw) {
+// Who is asking (IP + Vercel's location estimate)? Passed on to ravotters.nl so its
+// guess-lock and master-code alert look at the player, not at this server.
+function clientInfo(req) {
+  const h = (req && req.headers) || {};
+  const dec = (v) => { try { return v ? decodeURIComponent(v) : null; } catch (e) { return v || null; } };
+  const lat = parseFloat(h['x-vercel-ip-latitude']), lon = parseFloat(h['x-vercel-ip-longitude']);
+  return {
+    ip: String(h['x-forwarded-for'] || '').split(',')[0].trim() || null,
+    geo: Number.isFinite(lat) && Number.isFinite(lon)
+      ? { lat, lon, city: dec(h['x-vercel-ip-city']), region: dec(h['x-vercel-ip-country-region']), country: h['x-vercel-ip-country'] || null }
+      : null,
+  };
+}
+
+async function checkAccess(raw, client) {
   const access = String(raw ?? '').trim().toUpperCase().slice(0, 40);
   need(access, 'Vul je toegangscode in.');
   if (db.MEMORY && !process.env.DG_CODE_API) {          // local testing without ravotters.nl
@@ -79,12 +93,14 @@ async function checkAccess(raw) {
   try {
     const r = await fetch(CODE_API, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: access, gameSlug: GAME_SLUG }), signal: AbortSignal.timeout(10000),
+      body: JSON.stringify({ code: access, gameSlug: GAME_SLUG, ip: client?.ip || undefined, geo: client?.geo || undefined }),
+      signal: AbortSignal.timeout(10000),
     });
     j = await r.json();
   } catch (e) { j = null; }
   need(j && typeof j.valid === 'boolean', 'De toegangscode kon niet gecontroleerd worden. Probeer het zo opnieuw.', 503);
   if (!j.valid) {
+    need(j.reason !== 'too_many_attempts', 'Te veel foute pogingen. Wacht tien minuten en probeer het dan opnieuw.', 429);
     need(false, j.reason === 'expired'
       ? 'Deze toegangscode is verlopen. Een code werkt 72 uur vanaf het eerste gebruik.'
       : 'Deze toegangscode bestaat niet. Controleer de code uit je mail.', 403);
@@ -94,13 +110,13 @@ async function checkAccess(raw) {
 
 // ── Acties ────────────────────────────────────────────────────────
 const actions = {
-  async checkCode(body) { return checkAccess(body.access); },
+  async checkCode(body, client) { return checkAccess(body.access, client); },
 
-  async create(body) {
+  async create(body, client) {
     need(validToken(body.token), 'Sessie ongeldig. Herlaad de pagina.');
     const name = cleanName(body.name);
     need(name, 'Vul een naam in.');
-    const access = await checkAccess(body.access);
+    const access = await checkAccess(body.access, client);
     const mode = body.mode === 'stad' ? 'stad' : 'tafel';
     const questions = Math.min(3, Math.max(1, Math.round(Number(body.questions) || 2)));
     let rounds = Math.min(5, Math.max(3, Math.round(Number(body.rounds) || 5)));
@@ -312,7 +328,7 @@ async function handler(req, res) {
   const fn = body && Object.prototype.hasOwnProperty.call(actions, body.action) ? actions[body.action] : null;
   if (!fn) return res.status(400).json({ ok: false, error: 'Onbekende actie' });
   try {
-    const out = await fn(body);
+    const out = await fn(body, clientInfo(req));
     return res.status(200).json({ ok: true, ...out });
   } catch (e) {
     if (e instanceof Oops) return res.status(e.status).json({ ok: false, error: e.message });
