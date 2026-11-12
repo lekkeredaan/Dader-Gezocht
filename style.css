@@ -74,6 +74,8 @@ button:disabled { cursor: default; }
 /* ── Invoer ── */
 .textinput { width: 100%; height: 56px; background: var(--papier); border: 3px solid var(--inkt); border-radius: 0; padding: 0 14px; font-size: 17px; }
 .textinput::placeholder, .codeinput::placeholder { color: #8C8474; }
+.textinput--code { font-family: var(--typ); font-size: 20px; letter-spacing: 3px; text-transform: uppercase; padding-top: 4px; }
+.hint a, .foot a { color: var(--inkt); text-underline-offset: 3px; }
 .codeinput { width: 100%; height: 60px; background: var(--papier); border: 3px solid var(--inkt); border-radius: 0; font-family: var(--typ); font-size: 30px; letter-spacing: 8px; text-align: center; text-transform: uppercase; padding: 6px 12px 0; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
 .seg button { min-height: 52px; background: var(--papier); border: 3px solid var(--inkt); font-family: var(--kop); font-size: 22px; }

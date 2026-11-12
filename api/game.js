@@ -13,6 +13,9 @@ const ai = require('../lib/ai');
 const { fallbackCase } = require('../lib/fallback-case');
 
 const MIN_PLAYERS = 4, MAX_PLAYERS = 10;
+// Access codes: sold and managed on ravotters.nl (the master code lives there too, as ADMIN_CODE)
+const CODE_API = process.env.DG_CODE_API || 'https://www.ravotters.nl/api/codes/verify';
+const GAME_SLUG = 'dader-gezocht';
 const STUCK_MS = 6 * 60 * 1000;   // generating for longer than this: interrupted, may start again
 const MAX_AI_CASES_PER_DAY = Number(process.env.DG_MAX_AI_CASES_PER_DAY || 150);
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -64,12 +67,40 @@ function cardFor(vault, pid) {
     : { idx, name: c.name, role: c.role, culprit: false, secret: c.secret, knows: c.knows || [] };
 }
 
+// Is the access code valid? Checks with ravotters.nl. The 72 hours start at first use.
+async function checkAccess(raw) {
+  const access = String(raw ?? '').trim().toUpperCase().slice(0, 40);
+  need(access, 'Vul je toegangscode in.');
+  if (db.MEMORY && !process.env.DG_CODE_API) {          // local testing without ravotters.nl
+    need(access === 'TEST-0000', 'Deze toegangscode bestaat niet. Controleer de code uit je mail.', 403);
+    return { expiresAt: new Date(Date.now() + 72 * 3600e3).toISOString() };
+  }
+  let j = null;
+  try {
+    const r = await fetch(CODE_API, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: access, gameSlug: GAME_SLUG }), signal: AbortSignal.timeout(10000),
+    });
+    j = await r.json();
+  } catch (e) { j = null; }
+  need(j && typeof j.valid === 'boolean', 'De toegangscode kon niet gecontroleerd worden. Probeer het zo opnieuw.', 503);
+  if (!j.valid) {
+    need(false, j.reason === 'expired'
+      ? 'Deze toegangscode is verlopen. Een code werkt 72 uur vanaf het eerste gebruik.'
+      : 'Deze toegangscode bestaat niet. Controleer de code uit je mail.', 403);
+  }
+  return { expiresAt: j.expiresAt || null };
+}
+
 // ── Acties ────────────────────────────────────────────────────────
 const actions = {
+  async checkCode(body) { return checkAccess(body.access); },
+
   async create(body) {
     need(validToken(body.token), 'Sessie ongeldig. Herlaad de pagina.');
     const name = cleanName(body.name);
     need(name, 'Vul een naam in.');
+    const access = await checkAccess(body.access);
     const mode = body.mode === 'stad' ? 'stad' : 'tafel';
     const questions = Math.min(3, Math.max(1, Math.round(Number(body.questions) || 2)));
     let rounds = Math.min(5, Math.max(3, Math.round(Number(body.rounds) || 5)));
@@ -96,7 +127,7 @@ const actions = {
       players: { [pid]: { name, at: now } },
     };
     if (locations) game.locations = locations;
-    await db.put(db.vaultPath(code), { createdAt: now, hostPid: pid, theme: String(body.theme ?? '').replace(/["<>\n\r]/g, ' ').trim().slice(0, 60) });
+    await db.put(db.vaultPath(code), { createdAt: now, hostPid: pid, accessExpiresAt: access.expiresAt, theme: String(body.theme ?? '').replace(/["<>\n\r]/g, ' ').trim().slice(0, 60) });
     await db.put(`games/${code}`, game);
     await db.patch(db.indexPath(), { [`codes/${code}`]: now }).catch(() => {});
     return { code, pid };

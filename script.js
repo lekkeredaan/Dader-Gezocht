@@ -14,7 +14,7 @@ const POLL_MS = 2000;
 const FIND_RADIUS = 40;          // meter: zo dichtbij moet je zijn om bewijs te vinden
 const MIN_PLAYERS = 4;
 const NL_CENTER = [52.1, 5.1];
-const SESSION_KEY = 'dg.session', LAST_KEY = 'dg.last';
+const SESSION_KEY = 'dg.session', LAST_KEY = 'dg.last', ACCESS_KEY = 'dg.access';
 const RESUME_MAX_MS = 24 * 60 * 60 * 1000;
 const SUGGESTIONS = ['Wat heb je zelf gezien?', 'Hoe laat was dat?', 'Wie was er nog meer?'];
 
@@ -660,7 +660,7 @@ async function createGame(btn) {
     me = { token: genToken(), pid: '', name: $('host-name').value.trim() };
     code = '';
     const r = await api('create', {
-      name: me.name, mode: setup.mode, rounds: setup.rounds, questions: setup.questions,
+      name: me.name, access: $('access').value.trim(), mode: setup.mode, rounds: setup.rounds, questions: setup.questions,
       theme: $('theme').value.trim(), locations: setup.mode === 'stad' ? setup.places : undefined,
     });
     code = r.code; me.pid = r.pid;
@@ -722,7 +722,13 @@ function bind() {
     } catch (err) { showError('name-error', err.message); }
     finally { btn.disabled = false; }
   });
-  $('btn-new').addEventListener('click', () => { setMode('setup', homeMode); showError('setup-error', ''); showScreen('s-setup'); });
+  $('btn-new').addEventListener('click', () => {
+    setMode('setup', homeMode); showError('setup-error', '');
+    // A previously used code that is still valid: fill it in already
+    const saved = storeGet('device', ACCESS_KEY);
+    if (saved && saved.code && !$('access').value && (!saved.expiresAt || new Date(saved.expiresAt) > new Date())) $('access').value = saved.code;
+    showScreen('s-setup');
+  });
   $('btn-resume').addEventListener('click', e => { if (resumeOffer) busy(e.currentTarget, () => resume(resumeOffer)); });
   $('btn-resume-forget').addEventListener('click', () => { storeSet('device', LAST_KEY, null); resumeOffer = null; renderResumeOffer(); });
 
@@ -730,12 +736,23 @@ function bind() {
   document.querySelectorAll('#setup-modes .mode').forEach(b => b.addEventListener('click', () => setMode('setup', b.dataset.mode)));
   document.querySelectorAll('#seg-rounds button').forEach(b => b.addEventListener('click', () => { setup.rounds = Number(b.dataset.v); setSeg('seg-rounds', setup.rounds); }));
   document.querySelectorAll('#seg-questions button').forEach(b => b.addEventListener('click', () => { setup.questions = Number(b.dataset.v); setSeg('seg-questions', setup.questions); }));
-  $('setup-form').addEventListener('submit', e => {
+  $('setup-form').addEventListener('submit', async e => {
     e.preventDefault();
+    const btn = $('btn-setup-go');
+    if (btn.disabled) return;
     if (!$('host-name').value.trim()) { showError('setup-error', 'Vul je naam in.'); return; }
+    const access = $('access').value.trim().toUpperCase();
+    if (!access) { showError('setup-error', 'Vul je toegangscode in. Die staat in de mail na je aankoop.'); return; }
     showError('setup-error', '');
+    btn.disabled = true;
+    try {
+      // Check the code first, so nobody places spots on the map for nothing
+      const r = await api('checkCode', { access });
+      storeSet('device', ACCESS_KEY, { code: access, expiresAt: r.expiresAt });
+    } catch (err) { showError('setup-error', err.message); return; }
+    finally { btn.disabled = false; }
     if (setup.mode === 'stad') { showScreen('s-places'); initPlacesMap(); }
-    else createGame($('btn-setup-go'));
+    else createGame(btn);
   });
   $('btn-places-go').addEventListener('click', e => createGame(e.currentTarget));
   $('btn-places-me').addEventListener('click', () => locateOnce(p => placesMap.setView([p.lat, p.lng], 17), () => toast('Je locatie is niet beschikbaar. Zoom zelf in op de kaart.', true)));
