@@ -357,7 +357,7 @@ function renderVerhoor() {
       ${ws.map((w, i) => {
         const n = Object.keys(priv?.chats?.[`w${i}`] || {}).length;
         return `<button class="witness" data-act="chat" data-wid="${i}">
-          <span class="avatar" aria-hidden="true">${esc(w.name[0])}</span>
+          ${mugshot(w.name, w.role, 'md')}
           <span class="witness__tekst"><span class="witness__naam">${esc(w.name)}</span><span class="witness__rol">${esc(w.role)}${n ? ` · ${n} ${n === 1 ? 'vraag' : 'vragen'} gesteld` : ''}</span><span class="witness__blurb">${esc(w.blurb)}</span></span>
           ${ico('i-pijl')}
         </button>`;
@@ -368,7 +368,7 @@ function renderVerhoor() {
     return;
   }
   const w = ws[chatWid];
-  $('v-avatar').textContent = w.name[0];
+  $('v-avatar').innerHTML = portraitSvg(w.name, w.role);
   $('v-kind').textContent = game.case?.ai ? 'GETUIGE · GESPEELD DOOR AI' : 'GETUIGE';
   $('v-name').textContent = `${w.name}, ${w.role}`;
   $('v-left').textContent = open ? `${left} ${left === 1 ? 'VRAAG' : 'VRAGEN'}` : 'GESLOTEN';
@@ -391,7 +391,7 @@ function renderSuspects() {
     const ch = charOf(pid);
     if (!ch) return '';
     return `<div class="paper paper--small suspect${i % 2 ? ' paper--tilt2' : ''}">
-      <div class="suspect__top"><span class="suspect__naam">${esc(ch.name)}</span><span class="suspect__speler">${esc(p.name)}${pid === me.pid ? ' (jij)' : ''}</span></div>
+      ${mugshot(ch.name, ch.role, 'md')}<div class="suspect__top"><span class="suspect__naam">${esc(ch.name)}</span><span class="suspect__speler">${esc(p.name)}${pid === me.pid ? ' (jij)' : ''}</span></div>
       <div class="suspect__rol">${esc(ch.role)}</div>
       <div class="suspect__blurb">${esc(ch.blurb)}</div>
     </div>`;

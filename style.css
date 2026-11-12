@@ -220,7 +220,14 @@ button:disabled { cursor: default; }
 .sendbtn .ico { width: 24px; height: 24px; stroke-width: 2.6; }
 
 /* Verdachten */
-.suspect { display: flex; flex-direction: column; gap: 4px; }
+.suspect { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; row-gap: 4px; align-items: start; }
+.suspect > .mug { grid-row: span 3; }
+.suspect > :not(.mug) { grid-column: 2; }
+.mug { display: inline-block; flex-shrink: 0; background: var(--papier); border: 2px solid var(--inkt); box-shadow: 3px 3px 0 var(--schaduw); padding: 3px 3px 7px; transform: rotate(-3deg); line-height: 0; }
+.mug__svg { display: block; width: 100%; height: auto; }
+.mug--sm { width: 40px; } .mug--md { width: 56px; } .mug--lg { width: 96px; }
+.avatar { padding: 3px; overflow: hidden; }
+.avatar .mug__svg { width: 100%; height: 100%; }
 .suspect__top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .suspect__naam { font-family: var(--kop); font-size: 22px; line-height: 1; text-transform: uppercase; }
 .suspect__speler { font-family: var(--typ); font-size: 12px; background: var(--inkt); color: var(--papier); padding: 4px 7px 1px; white-space: nowrap; }
