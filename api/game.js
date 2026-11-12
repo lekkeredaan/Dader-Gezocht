@@ -13,6 +13,7 @@ const ai = require('../lib/ai');
 const { fallbackCase } = require('../lib/fallback-case');
 
 const MIN_PLAYERS = 4, MAX_PLAYERS = 10;
+const STUCK_MS = 6 * 60 * 1000;   // generating for longer than this: interrupted, may start again
 const MAX_AI_CASES_PER_DAY = Number(process.env.DG_MAX_AI_CASES_PER_DAY || 150);
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
@@ -125,11 +126,12 @@ const actions = {
   async start(body) {
     const { code, game, vault, isHost } = await load(body);
     need(isHost, 'Alleen de host kan de zaak openen.', 403);
-    need(game.status === 'lobby', 'De zaak is al geopend.');
+    const stuck = game.status === 'generating' && Date.now() - (Number(game.genAt) || 0) > STUCK_MS;
+    need(game.status === 'lobby' || stuck, game.status === 'generating' ? 'Het dossier wordt al samengesteld.' : 'De zaak is al geopend.');
     const pids = Object.keys(game.players || {});
     need(pids.length >= MIN_PLAYERS, `Je hebt minstens ${MIN_PLAYERS} spelers nodig.`);
     need(pids.length <= MAX_PLAYERS, `Maximaal ${MAX_PLAYERS} spelers.`);
-    await db.patch(`games/${code}`, { status: 'generating' });
+    await db.patch(`games/${code}`, { status: 'generating', genAt: Date.now() });
 
     const rounds = game.config.rounds;
     let kase = null, why = '';

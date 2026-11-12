@@ -207,7 +207,11 @@ async function route(fresh) {
   const changed = fresh || st !== lastStatus;
   lastStatus = st;
   if (st === 'lobby') { if (changed) showScreen('s-lobby'); renderLobby(); return; }
-  if (st === 'generating') { if (changed) showScreen('s-gen'); return; }
+  if (st === 'generating') {
+    if (changed) showScreen('s-gen');
+    $('btn-gen-retry').hidden = !(isHost() && Date.now() - (game.genAt || 0) > 6 * 60 * 1000);
+    return;
+  }
   if (st === 'revealed') { if (changed) { stopGeo(); showScreen('s-reveal'); } renderReveal(); return; }
   // playing of accusing
   if (!priv || changed) {
@@ -735,6 +739,8 @@ function bind() {
   });
   $('btn-places-go').addEventListener('click', e => createGame(e.currentTarget));
   $('btn-places-me').addEventListener('click', () => locateOnce(p => placesMap.setView([p.lat, p.lng], 17), () => toast('Je locatie is niet beschikbaar. Zoom zelf in op de kaart.', true)));
+
+  $('btn-gen-retry').addEventListener('click', e => busy(e.currentTarget, async () => { await api('start'); await poll(); }));
 
   // Lobby
   $('btn-start').addEventListener('click', async e => {
