@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "regions": ["fra1"],
+  "functions": { "api/game.js": { "maxDuration": 120 } },
+  "crons": [ { "path": "/api/cleanup", "schedule": "30 4 * * *" } ]
+}

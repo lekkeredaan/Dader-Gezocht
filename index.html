@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dader Gezocht · een spel van Ravotters</title>
+<meta name="description" content="Eén van jullie liegt. Verhoor de getuigen en ontmasker de dader. Een deductiespel van Ravotters voor 4 tot 10 spelers, aan tafel of in de stad.">
+<meta name="theme-color" content="#D8B67A">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23D8B67A'/%3E%3Crect x='7' y='18' width='50' height='28' fill='none' stroke='%23B3201B' stroke-width='6' transform='rotate(-8 32 32)'/%3E%3Ctext x='32' y='41' font-family='Arial Black,Arial' font-weight='900' font-size='22' text-anchor='middle' fill='%23B3201B' transform='rotate(-8 32 32)'%3EDG%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;800&family=Special+Elite&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Iconen: lijntekeningen, geen emoji -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-glas" viewBox="0 0 24 24"><path d="M6 3h12l-1 8a5 5 0 0 1-10 0z"/><path d="M12 16v5M8 21h8"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-slot" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+    <symbol id="i-mensen" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 5a3.5 3.5 0 0 1 0 7M18 14.5a6 6 0 0 1 3.5 5.5"/></symbol>
+    <symbol id="i-let-op" viewBox="0 0 24 24"><path d="M12 3l9 17H3z"/><path d="M12 10v4M12 17v.5"/></symbol>
+    <symbol id="i-pijl" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-terug" viewBox="0 0 24 24"><path d="M20 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-kaart" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+    <symbol id="i-oog" viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+    <symbol id="i-vink" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+    <symbol id="i-kruis" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-vraag" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1 1-1.1 1.8M12 17v.5"/></symbol>
+  </defs>
+</svg>
+
+<!-- ═══════════ START ═══════════ -->
+<section id="s-home" class="screen screen--active">
+  <div class="tape" aria-hidden="true"></div>
+  <div class="home">
+    <div class="logo">
+      <div class="polaroid ty-foto" aria-hidden="true">
+        <div class="polaroid__foto"><svg width="64" height="66" viewBox="0 0 64 66" fill="#1C1A17"><circle cx="32" cy="24" r="14"/><path d="M4 66c0-16 12-24 28-24s28 8 28 24z"/></svg></div>
+        <div class="polaroid__tekst">WIE?</div>
+      </div>
+      <h1 class="logo__dader">DADER</h1>
+      <div class="logo__stempel">
+        <div class="logo__gezocht ty-afdruk">GEZOCHT</div>
+        <div class="stempelblok ty-blok" aria-hidden="true"><div class="stempelblok__greep"><div class="stempelblok__glans"></div></div></div>
+      </div>
+    </div>
+    <p id="tagline" class="tagline" aria-label="Eén van jullie liegt. Verhoor de getuigen en ontmasker de dader."></p>
+
+    <div id="resume-box" class="note" hidden>
+      <div>
+        <div class="label">LOPENDE ZAAK</div>
+        <div id="resume-what" class="note__tekst"></div>
+      </div>
+      <div class="note__knoppen">
+        <button id="btn-resume" class="btn btn--blue btn--small">VERDER SPELEN</button>
+        <button id="btn-resume-forget" class="linkbtn">Vergeten</button>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="label">WAAR SPELEN JULLIE?</div>
+      <div class="modes" id="home-modes">
+        <button class="mode" data-mode="tafel" aria-pressed="true">
+          <svg class="ico ico--28" aria-hidden="true"><use href="#i-glas"/></svg>
+          <span class="mode__naam">AAN TAFEL</span>
+          <span class="mode__uitleg">Bewijs komt per ronde vrij</span>
+        </button>
+        <button class="mode" data-mode="stad" aria-pressed="false">
+          <svg class="ico ico--28" aria-hidden="true"><use href="#i-pin"/></svg>
+          <span class="mode__naam">IN DE STAD</span>
+          <span class="mode__uitleg">Bewijs ligt op echte locaties</span>
+        </button>
+      </div>
+    </div>
+
+    <form id="join-form" class="block" autocomplete="off">
+      <label class="label" for="code">DOSSIERCODE</label>
+      <input id="code" class="codeinput" type="text" inputmode="text" maxlength="6" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="······">
+      <p id="home-error" class="error" role="alert" hidden></p>
+      <button class="btn btn--blue btn--big" type="submit">MEEDOEN</button>
+    </form>
+    <button id="btn-new" class="btn btn--paper">NIEUWE ZAAK OPENEN</button>
+    <button id="btn-rules-home" class="linkbtn linkbtn--center">Hoe werkt het?</button>
+    <div class="foot">Een spel van Ravotters · 4 tot 10 spelers</div>
+  </div>
+</section>
+
+<!-- ═══════════ NAAM (meedoen) ═══════════ -->
+<section id="s-name" class="screen">
+  <div class="tape" aria-hidden="true"></div>
+  <form id="name-form" class="pad" autocomplete="off">
+    <button type="button" class="back" data-go="s-home"><svg class="ico" aria-hidden="true"><use href="#i-terug"/></svg>Terug</button>
+    <div>
+      <div class="label">DOSSIER <span id="name-code"></span></div>
+      <h2 class="kop">WIE BEN JIJ?</h2>
+      <p class="uitleg">Je echte naam of bijnaam. Je personage krijg je straks.</p>
+    </div>
+    <div class="block">
+      <label class="label" for="name">JOUW NAAM</label>
+      <input id="name" class="textinput" type="text" maxlength="16" placeholder="Bijv. Sam">
+      <p id="name-error" class="error" role="alert" hidden></p>
+    </div>
+    <button class="btn btn--blue btn--big" type="submit">MEEDOEN</button>
+  </form>
+</section>
+
+<!-- ═══════════ NIEUWE ZAAK ═══════════ -->
+<section id="s-setup" class="screen">
+  <div class="tape" aria-hidden="true"></div>
+  <form id="setup-form" class="pad" autocomplete="off">
+    <button type="button" class="back" data-go="s-home"><svg class="ico" aria-hidden="true"><use href="#i-terug"/></svg>Terug</button>
+    <h2 class="kop">NIEUWE ZAAK</h2>
+    <div class="block">
+      <label class="label" for="host-name">JOUW NAAM</label>
+      <input id="host-name" class="textinput" type="text" maxlength="16" placeholder="Bijv. Sam">
+    </div>
+    <div class="block">
+      <div class="label">WAAR SPELEN JULLIE?</div>
+      <div class="modes" id="setup-modes">
+        <button type="button" class="mode" data-mode="tafel" aria-pressed="true">
+          <svg class="ico ico--28" aria-hidden="true"><use href="#i-glas"/></svg>
+          <span class="mode__naam">AAN TAFEL</span>
+          <span class="mode__uitleg">Bewijs komt per ronde vrij</span>
+        </button>
+        <button type="button" class="mode" data-mode="stad" aria-pressed="false">
+          <svg class="ico ico--28" aria-hidden="true"><use href="#i-pin"/></svg>
+          <span class="mode__naam">IN DE STAD</span>
+          <span class="mode__uitleg">Bewijs ligt op echte locaties</span>
+        </button>
+      </div>
+    </div>
+    <div class="block" id="rounds-block">
+      <div class="label">AANTAL RONDES</div>
+      <div class="seg" id="seg-rounds" role="group" aria-label="Aantal rondes">
+        <button type="button" data-v="3" aria-pressed="false">3</button>
+        <button type="button" data-v="4" aria-pressed="false">4</button>
+        <button type="button" data-v="5" aria-pressed="true">5</button>
+      </div>
+      <p class="hint">Elke ronde komt er één bewijsstuk vrij.</p>
+    </div>
+    <div class="block">
+      <div class="label">VRAGEN PER SPELER PER RONDE</div>
+      <div class="seg" id="seg-questions" role="group" aria-label="Vragen per ronde">
+        <button type="button" data-v="1" aria-pressed="false">1</button>
+        <button type="button" data-v="2" aria-pressed="true">2</button>
+        <button type="button" data-v="3" aria-pressed="false">3</button>
+      </div>
+      <p class="hint">Zoveel vragen mag ieder per ronde aan de getuigen stellen.</p>
+    </div>
+    <div class="block">
+      <label class="label" for="theme">WAAR SPEELT DE ZAAK? (MAG LEEG)</label>
+      <input id="theme" class="textinput" type="text" maxlength="60" placeholder="Bijv. de voetbalkantine, een camping">
+      <p class="hint">De zaak wordt per spel nieuw verzonnen. Laat leeg voor een verrassing.</p>
+    </div>
+    <p id="setup-error" class="error" role="alert" hidden></p>
+    <button id="btn-setup-go" class="btn btn--blue btn--big" type="submit">OPEN DOSSIER</button>
+  </form>
+</section>
+
+<!-- ═══════════ PLEKKEN KIEZEN (stad) ═══════════ -->
+<section id="s-places" class="screen screen--fixed">
+  <div class="bar">
+    <button type="button" class="back" data-go="s-setup"><svg class="ico" aria-hidden="true"><use href="#i-terug"/></svg>Terug</button>
+    <div class="bar__titel">WAAR LIGT HET BEWIJS?</div>
+  </div>
+  <div id="places-map" class="map"></div>
+  <div class="places">
+    <p class="uitleg">Tik op de kaart om 3 tot 5 plekken te zetten. Op elke plek ligt één bewijsstuk. Kies plekken waar je echt kunt komen.</p>
+    <div id="places-list" class="chips"></div>
+    <p id="places-error" class="error" role="alert" hidden></p>
+    <div class="row">
+      <button id="btn-places-me" type="button" class="btn btn--paper btn--small">NAAR MIJN PLEK</button>
+      <button id="btn-places-go" type="button" class="btn btn--blue btn--grow" disabled>OPEN DOSSIER</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ LOBBY ═══════════ -->
+<section id="s-lobby" class="screen">
+  <div class="tape" aria-hidden="true"></div>
+  <div class="pad">
+    <div class="lobbytop">
+      <div>
+        <div class="label">DOSSIERCODE</div>
+        <div id="lobby-code" class="bigcode"></div>
+      </div>
+      <button id="btn-share" class="btn btn--paper btn--small">DEEL</button>
+    </div>
+    <div id="lobby-tags" class="tags"></div>
+    <div class="block">
+      <div class="label" id="lobby-count">SPELERS</div>
+      <ul id="lobby-players" class="roster"></ul>
+    </div>
+    <div class="dash">
+      <svg class="ico ico--28" aria-hidden="true"><use href="#i-vraag"/></svg>
+      <div class="typed">Eén van jullie wordt straks de dader en mag liegen. De rest moet de waarheid spreken.</div>
+    </div>
+    <p id="lobby-error" class="error" role="alert" hidden></p>
+    <div class="bottom">
+      <button id="btn-start" class="btn btn--red btn--big" hidden>OPEN DE ZAAK</button>
+      <p id="lobby-wait" class="typed typed--center" hidden>Wacht tot de host de zaak opent.</p>
+      <div class="row row--center">
+        <button id="btn-rules-lobby" class="linkbtn">Spelregels</button>
+        <button id="btn-leave" class="linkbtn">Verlaten</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ DOSSIER WORDT GEMAAKT ═══════════ -->
+<section id="s-gen" class="screen">
+  <div class="tape" aria-hidden="true"></div>
+  <div class="pad pad--center">
+    <div class="paper paper--tilt gen">
+      <div class="stamp stamp--big gen__stamp">GEHEIM</div>
+      <h2 class="kop kop--small">HET DOSSIER WORDT SAMENGESTELD</h2>
+      <p class="typed">De recherche verzint een nieuwe zaak, verdeelt de personages en kiest een dader<span class="dots"></span></p>
+      <p class="hint">Dit duurt meestal een halve minuut.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ HET SPEL ═══════════ -->
+<section id="s-game" class="screen screen--fixed">
+  <header class="ghead">
+    <div class="ghead__links">
+      <div class="label label--ink" id="g-nr">DOSSIER</div>
+      <div class="ghead__titel" id="g-title"></div>
+    </div>
+    <div class="ghead__rechts">
+      <div class="badge badge--blue" id="g-round"></div>
+      <button id="btn-rules-game" class="iconbtn" aria-label="Spelregels"><svg class="ico" aria-hidden="true"><use href="#i-vraag"/></svg></button>
+    </div>
+  </header>
+
+  <main class="gmain">
+    <!-- DOSSIER -->
+    <div id="p-dossier" class="panel panel--active">
+      <div id="d-card"></div>
+      <div id="d-intro"></div>
+      <div class="block">
+        <div class="label" id="d-evlabel">BEWIJS</div>
+        <div id="d-evidence" class="stack"></div>
+      </div>
+      <div id="d-host"></div>
+    </div>
+
+    <!-- KAART (stad) -->
+    <div id="p-kaart" class="panel panel--map">
+      <div id="game-map" class="map map--game"></div>
+      <div id="k-info" class="kinfo"></div>
+    </div>
+
+    <!-- VERHOOR -->
+    <div id="p-verhoor" class="panel">
+      <div id="v-list"></div>
+      <div id="v-chat" class="chat" hidden>
+        <div class="chat__head">
+          <button id="btn-chat-back" class="iconbtn" aria-label="Terug naar de getuigen"><svg class="ico" aria-hidden="true"><use href="#i-terug"/></svg></button>
+          <div class="avatar" id="v-avatar" aria-hidden="true"></div>
+          <div class="chat__wie">
+            <div class="label label--ink" id="v-kind">GETUIGE · GESPEELD DOOR AI</div>
+            <div class="chat__naam" id="v-name"></div>
+          </div>
+          <div class="badge badge--paper" id="v-left"></div>
+        </div>
+        <div id="v-log" class="chat__log" aria-live="polite"></div>
+        <div id="v-sugg" class="chat__sugg"></div>
+        <form id="v-form" class="chat__form" autocomplete="off">
+          <label class="sr" for="vraag">Jouw vraag</label>
+          <input id="vraag" class="textinput textinput--chat" type="text" maxlength="200" placeholder="Stel je vraag...">
+          <button class="sendbtn" type="submit" aria-label="Vraag versturen"><svg class="ico" aria-hidden="true"><use href="#i-pijl"/></svg></button>
+        </form>
+      </div>
+    </div>
+
+    <!-- VERDACHTEN -->
+    <div id="p-verdachten" class="panel">
+      <div class="label">VERDACHTEN</div>
+      <div id="s-list" class="stack"></div>
+    </div>
+
+    <!-- BESCHULDIG -->
+    <div id="p-beschuldig" class="panel">
+      <div id="b-body"></div>
+    </div>
+  </main>
+
+  <nav class="gnav" id="gnav" aria-label="Hoofdmenu">
+    <button data-tab="dossier" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg>DOSSIER</button>
+    <button data-tab="kaart" id="nav-kaart" hidden><svg class="ico" aria-hidden="true"><use href="#i-kaart"/></svg>KAART</button>
+    <button data-tab="verhoor"><svg class="ico" aria-hidden="true"><use href="#i-chat"/></svg>VERHOOR</button>
+    <button data-tab="verdachten"><svg class="ico" aria-hidden="true"><use href="#i-mensen"/></svg>VERDACHTEN</button>
+    <button data-tab="beschuldig" class="gnav__red"><svg class="ico" aria-hidden="true"><use href="#i-let-op"/></svg>BESCHULDIG</button>
+  </nav>
+</section>
+
+<!-- ═══════════ ONTHULLING ═══════════ -->
+<section id="s-reveal" class="screen">
+  <div class="tape" aria-hidden="true"></div>
+  <div class="pad" id="reveal-body"></div>
+</section>
+
+<!-- Spelregels -->
+<div id="rules" class="sheet" hidden>
+  <div class="sheet__inner" role="dialog" aria-modal="true" aria-labelledby="rules-title">
+    <div class="sheet__head">
+      <h2 class="kop kop--small" id="rules-title">SPELREGELS</h2>
+      <button id="btn-rules-close" class="iconbtn" aria-label="Sluiten"><svg class="ico" aria-hidden="true"><use href="#i-kruis"/></svg></button>
+    </div>
+    <ol class="rules">
+      <li><b>Iedereen krijgt een personage</b> met een geheim. Precies één van jullie is de dader. Houd je telefoon voor jezelf.</li>
+      <li><b>De dader mag liegen.</b> Alle anderen moeten de waarheid spreken over wat op hun kaart staat, maar hoeven niet alles uit zichzelf te vertellen.</li>
+      <li><b>Bewijs komt stap voor stap vrij.</b> Aan tafel per ronde, in de stad door naar de plekken op de kaart te lopen.</li>
+      <li><b>Verhoor de getuigen.</b> Zij worden door AI gespeeld en liegen nooit, maar antwoorden alleen op wat je vraagt. Je hebt per ronde een beperkt aantal vragen; wat je overhoudt vervalt. Alleen jij ziet je eigen verhoor: vertel de groep wat je hoorde (of niet).</li>
+      <li><b>Praat, twijfel, bluf.</b> Ondervraag elkaar en leg het bewijs naast de verklaringen.</li>
+      <li><b>Beschuldig.</b> Aan het eind kiest iedereen tegelijk en geheim een verdachte. Wijst meer dan de helft van de speurders de dader aan, dan is hij gepakt. Anders ontsnapt de dader.</li>
+      <li><b>Tafelregel:</b> zat je fout, dan neem je een slok.</li>
+    </ol>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="script.js"></script>
+</body>
+</html>
