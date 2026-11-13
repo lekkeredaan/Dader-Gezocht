@@ -295,3 +295,13 @@ button:disabled { cursor: default; }
   .logo__stempel { margin-left: 24px; }
   .bigcode { font-size: 32px; }
 }
+
+/* Comic portraits */
+.mug--foto { padding: 3px 3px 7px; }
+.mug__img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; background: var(--blauw); }
+.mug--av { width: 100%; padding: 0; border: 0; box-shadow: none; transform: none; background: none; }
+.avatar { padding: 2px; }
+.avatar .mug, .avatar .mug__img { width: 100%; height: 100%; }
+.kaart__wie { display: flex; align-items: center; gap: 14px; }
+.kaart__wie .mug { transform: rotate(3deg); }
+.choice .mug { transform: rotate(-2deg); }

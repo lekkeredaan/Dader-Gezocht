@@ -53,8 +53,8 @@ async function load(body, { member = true } = {}) {
 
 const publicCase = k => ({
   title: k.title, intro: k.intro, ai: k.source === 'ai',
-  chars: k.characters.map(c => ({ name: c.name, role: c.role, blurb: c.blurb })),
-  witnesses: k.witnesses.map(w => ({ name: w.name, role: w.role, blurb: w.blurb })),
+  chars: k.characters.map(c => ({ name: c.name, role: c.role, blurb: c.blurb, portrait: c.portrait || null })),
+  witnesses: k.witnesses.map(w => ({ name: w.name, role: w.role, blurb: w.blurb, portrait: w.portrait || null })),
 });
 
 function cardFor(vault, pid) {

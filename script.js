@@ -311,7 +311,7 @@ function renderDossier() {
          <div class="warn">Je mag niet liegen over wat hier staat. Houd je telefoon voor jezelf.</div>`;
     h = `<div class="paper paper--tilt">
       <div class="paper__head"><div class="label">Jouw personage</div><div class="stamp">GEHEIM</div></div>
-      <div class="paper__naam">${esc(card.name)}, ${esc(card.role)}</div>
+      <div class="kaart__wie">${face(game.case?.chars?.[card.idx], 'lg')}<div class="paper__naam">${esc(card.name)}, ${esc(card.role)}</div></div>
       ${body}
       <button class="linkbtn geheim" data-act="card-close">Verberg kaart</button>
     </div>`;
@@ -357,7 +357,7 @@ function renderVerhoor() {
       ${ws.map((w, i) => {
         const n = Object.keys(priv?.chats?.[`w${i}`] || {}).length;
         return `<button class="witness" data-act="chat" data-wid="${i}">
-          ${mugshot(w.name, w.role, 'md')}
+          ${face(w, 'md')}
           <span class="witness__tekst"><span class="witness__naam">${esc(w.name)}</span><span class="witness__rol">${esc(w.role)}${n ? ` · ${n} ${n === 1 ? 'vraag' : 'vragen'} gesteld` : ''}</span><span class="witness__blurb">${esc(w.blurb)}</span></span>
           ${ico('i-pijl')}
         </button>`;
@@ -368,7 +368,7 @@ function renderVerhoor() {
     return;
   }
   const w = ws[chatWid];
-  $('v-avatar').innerHTML = portraitSvg(w.name, w.role);
+  $('v-avatar').innerHTML = face(w, 'av');
   $('v-kind').textContent = game.case?.ai ? 'GETUIGE · GESPEELD DOOR AI' : 'GETUIGE';
   $('v-name').textContent = `${w.name}, ${w.role}`;
   $('v-left').textContent = open ? `${left} ${left === 1 ? 'VRAAG' : 'VRAGEN'}` : 'GESLOTEN';
@@ -391,7 +391,7 @@ function renderSuspects() {
     const ch = charOf(pid);
     if (!ch) return '';
     return `<div class="paper paper--small suspect${i % 2 ? ' paper--tilt2' : ''}">
-      ${mugshot(ch.name, ch.role, 'md')}<div class="suspect__top"><span class="suspect__naam">${esc(ch.name)}</span><span class="suspect__speler">${esc(p.name)}${pid === me.pid ? ' (jij)' : ''}</span></div>
+      ${face(ch, 'md')}<div class="suspect__top"><span class="suspect__naam">${esc(ch.name)}</span><span class="suspect__speler">${esc(p.name)}${pid === me.pid ? ' (jij)' : ''}</span></div>
       <div class="suspect__rol">${esc(ch.role)}</div>
       <div class="suspect__blurb">${esc(ch.blurb)}</div>
     </div>`;
@@ -430,7 +430,7 @@ function renderAccuse() {
           const ch = charOf(pid), self = pid === me.pid;
           return `<label class="choice${self ? ' choice--zelf' : ''}">
             <input type="radio" name="dader" value="${pid}"${pick === pid ? ' checked' : ''}${self ? ' disabled' : ''}>
-            <span class="choice__tekst"><span class="choice__naam">${esc(ch?.name)}</span><span class="choice__rol">${esc(ch?.role)} · ${self ? 'dat ben jij' : esc(p.name)}</span></span>
+            ${face(ch, 'sm')}<span class="choice__tekst"><span class="choice__naam">${esc(ch?.name)}</span><span class="choice__rol">${esc(ch?.role)} · ${self ? 'dat ben jij' : esc(p.name)}</span></span>
             <span class="stamp">VERDACHT</span>
           </label>`;
         }).join('')}</fieldset>
@@ -457,7 +457,7 @@ function renderReveal() {
   }).join('');
   const secrets = players().map(([pid, p]) => {
     const idx = game.assign[pid], c = game.case.chars[idx];
-    return `<div class="paper paper--small"><div class="suspect__top"><span class="suspect__naam">${esc(c.name)}</span><span class="suspect__speler">${esc(p.name)}</span></div><div class="typed">${esc(r.secrets?.[idx])}</div></div>`;
+    return `<div class="paper paper--small suspect">${face(c, 'sm')}<div class="suspect__top"><span class="suspect__naam">${esc(c.name)}</span><span class="suspect__speler">${esc(p.name)}</span></div><div class="typed">${esc(r.secrets?.[idx])}</div></div>`;
   }).join('');
   setHtml('reveal-body', `
     <div class="verdict"><div class="label label--ink">Onthulling · dossier ${esc(game.nr || '')}</div>
@@ -465,7 +465,7 @@ function renderReveal() {
       <p class="uitleg">${r.right} van de ${r.detectives} speurders wezen de dader aan. Nodig: ${r.needed}.</p></div>
     <div class="paper paper--tilt reveal-card">
       <div class="stamp stamp--big reveal-stamp">DADER</div>
-      <div class="paper__naam">${esc(ch.name)}, ${esc(ch.role)}</div>
+      <div class="kaart__wie">${face(ch, 'lg')}<div class="paper__naam">${esc(ch.name)}, ${esc(ch.role)}</div></div>
       <div class="typed">Gespeeld door <b>${esc(cp?.name)}</b></div>
       <div class="typed">${esc(r.solution)}</div>
     </div>

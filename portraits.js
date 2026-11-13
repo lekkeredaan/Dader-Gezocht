@@ -116,3 +116,12 @@ function portraitSvg(name, role) {
 function mugshot(name, role, size = 'md', label = '') {
   return `<span class="mug mug--${size}" aria-hidden="true">${portraitSvg(name, role)}${label ? `<span class="mug__label">${label}</span>` : ''}</span>`;
 }
+
+// Comic portrait from Gemini if the person has one, otherwise the drawn silhouette
+function face(person, size = 'md') {
+  if (!person) return '';
+  if (person.portrait && /^[a-z0-9-]+$/.test(person.portrait)) {
+    return `<span class="mug mug--${size} mug--foto" aria-hidden="true"><img class="mug__img" src="portraits/${person.portrait}.webp" alt="" decoding="async" onerror="this.parentNode.outerHTML=mugshot(${JSON.stringify(person.name).replace(/"/g, '&quot;')}, ${JSON.stringify(person.role).replace(/"/g, '&quot;')}, '${size}')"></span>`;
+  }
+  return mugshot(person.name, person.role, size);
+}
