@@ -515,7 +515,8 @@ function initGameMap() {
     gameMap = L.map('game-map', { zoomControl: false });
     tiles(gameMap);
     pinLayer = L.layerGroup().addTo(gameMap);
-    if (locs.length) gameMap.fitBounds(L.latLngBounds(locs.map(l => [l.lat, l.lng])).pad(0.3));
+    // onderin ligt het infovak over de kaart: daar geen plekken neerleggen
+    if (locs.length) gameMap.fitBounds(L.latLngBounds(locs.map(l => [l.lat, l.lng])), { paddingTopLeft: [30, 40], paddingBottomRight: [30, 170] });
     else gameMap.setView(NL_CENTER, 7);
   }
   setTimeout(() => gameMap.invalidateSize(), 50);
@@ -621,7 +622,7 @@ const acts = {
 async function sendQuestion(q) {
   if (chatPending || chatWid === null) return;
   q = q.replace(/\s+/g, ' ').trim();
-  if (q.length < 2) return;
+  if (q.length < 2) { toast('Typ eerst een vraag.', true); return; }
   const wid = chatWid;
   chatPending = { wid, q };
   $('vraag').value = '';

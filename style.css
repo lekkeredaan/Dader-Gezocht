@@ -77,7 +77,7 @@ button:disabled { cursor: default; }
 .textinput--code { font-family: var(--typ); font-size: 20px; letter-spacing: 3px; text-transform: uppercase; padding-top: 4px; }
 .hint a, .foot a { color: var(--inkt); text-underline-offset: 3px; }
 .codeinput { width: 100%; height: 60px; background: var(--papier); border: 3px solid var(--inkt); border-radius: 0; font-family: var(--typ); font-size: 30px; letter-spacing: 8px; text-align: center; text-transform: uppercase; padding: 6px 12px 0; }
-.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
 .seg button { min-height: 52px; background: var(--papier); border: 3px solid var(--inkt); font-family: var(--kop); font-size: 22px; }
 .seg button[aria-pressed="true"] { background: var(--blauw); color: var(--papier); box-shadow: 4px 4px 0 var(--inkt); }
 
@@ -144,7 +144,7 @@ button:disabled { cursor: default; }
 .mode[aria-pressed="true"] .mode__uitleg { color: var(--papier); }
 
 /* ── Lobby ── */
-.lobbytop { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.lobbytop { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
 .bigcode { font-family: var(--typ); font-size: 40px; letter-spacing: 6px; line-height: 1; background: var(--papier); border: 3px solid var(--inkt); box-shadow: 5px 5px 0 var(--schaduw); padding: 14px 12px 6px 18px; margin-top: 6px; display: inline-block; }
 .roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .roster li { background: var(--papier); border: 2px solid var(--inkt); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-family: var(--kop); font-size: 22px; text-transform: uppercase; }
@@ -171,7 +171,7 @@ button:disabled { cursor: default; }
 .panel--active { display: flex; }
 .panel--map { padding: 0; gap: 0; overflow: hidden; }
 .gnav { flex-shrink: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border-top: 3px solid var(--inkt); background: var(--papier); padding-bottom: env(safe-area-inset-bottom); }
-.gnav button { min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: none; border: 0; padding: 4px 0; font-family: var(--tekst); font-size: 11px; font-weight: 800; color: var(--inkt); position: relative; }
+.gnav button { min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: none; border: 0; padding: 4px 0; font-family: var(--tekst); font-size: 11px; font-weight: 800; color: var(--inkt); position: relative; min-width: 0; line-height: 1.1; text-align: center; overflow-wrap: anywhere; }
 .gnav .gnav__red { color: var(--rood); }
 .gnav button[aria-current="page"] { background: var(--blauw); color: var(--papier); }
 .gnav button.gnav--dot::after { content: ''; position: absolute; top: 8px; right: calc(50% - 20px); width: 10px; height: 10px; background: var(--rood); border: 2px solid var(--papier); border-radius: 50%; }
@@ -286,7 +286,7 @@ button:disabled { cursor: default; }
 .sheet__inner { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: var(--papier); border: 3px solid var(--inkt); border-bottom: 0; padding: 18px 20px 28px; }
 .sheet__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .rules { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
-.toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 3000; max-width: min(92vw, 440px); background: var(--inkt); color: var(--papier); border: 2px solid var(--papier); padding: 12px 16px; font-weight: 600; font-size: 15px; text-align: center; }
+.toast { position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); z-index: 3000; max-width: min(92vw, 440px); background: var(--inkt); color: var(--papier); border: 2px solid var(--papier); padding: 12px 16px; font-weight: 600; font-size: 15px; text-align: center; pointer-events: none; }
 .toast.bad { background: var(--rood); }
 
 @media (max-width: 359px) {
